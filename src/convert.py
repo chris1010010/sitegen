@@ -63,6 +63,8 @@ def split_nodes_image(old_nodes):
                         new_nodes.append(TextNode(split_res[0], TextType.TEXT))
                     new_nodes.append(TextNode(tuple[0], TextType.IMAGE, tuple[1]))
                     remainin_text = split_res[1]
+                if remainin_text:
+                    new_nodes.append(TextNode(remainin_text, TextType.TEXT))
     return new_nodes
 
 
@@ -85,4 +87,17 @@ def split_nodes_link(old_nodes):
                         new_nodes.append(TextNode(split_res[0], TextType.TEXT))
                     new_nodes.append(TextNode(tuple[0], TextType.LINK, tuple[1]))
                     remainin_text = split_res[1]
+                if remainin_text:
+                    new_nodes.append(TextNode(remainin_text, TextType.TEXT))
     return new_nodes
+
+def text_to_textnodes(text):
+    all_nodes = [TextNode(text, TextType.TEXT)]
+
+    all_nodes = split_nodes_delimiter(all_nodes, "**", TextType.BOLD)
+    all_nodes = split_nodes_delimiter(all_nodes, "_", TextType.ITALIC)
+    all_nodes = split_nodes_delimiter(all_nodes, "`", TextType.CODE)
+    all_nodes = split_nodes_image(all_nodes)
+    all_nodes = split_nodes_link(all_nodes)
+
+    return all_nodes
