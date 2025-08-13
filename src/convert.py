@@ -1,3 +1,4 @@
+import re
 from textnode import TextType, TextNode
 from htmlnode import LeafNode
 
@@ -20,7 +21,6 @@ def text_node_to_html_node(text_node):
         
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
     new_nodes = []
-
     for old_node in old_nodes:
         if old_node.text_type != TextType.TEXT or not old_node.text or delimiter not in old_node.text:
             new_nodes.append(old_node)
@@ -36,6 +36,53 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
                     else: # inside
                         new_nodes.append(TextNode(split_res[i], text_type))
                 inside = not inside
+    return new_nodes
+
+def extract_markdown_images(text):
+    return re.findall(r"!\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
+
+def extract_markdown_links(text):
+    return re.findall(r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
+
+def split_nodes_image(old_nodes):
+    new_nodes = []
+    for old_node in old_nodes:
+        if old_node.text_type != TextType.TEXT or not old_node.text:
+            new_nodes.append(old_node)
+        else:
+            image_tuples = extract_markdown_images(old_node.text)
+            if len(image_tuples) == 0:
+                new_nodes.append(old_node)
+            else:
+                remainin_text = old_node.text
+                for tuple in image_tuples:
+                    split_res = remainin_text.split(f"![{tuple[0]}]({tuple[1]})", 1)
+                    if len(split_res) != 2:
+                        raise Exception("Invalid image split")
+                    if split_res[0]:
+                        new_nodes.append(TextNode(split_res[0], TextType.TEXT))
+                    new_nodes.append(TextNode(tuple[0], TextType.IMAGE, tuple[1]))
+                    remainin_text = split_res[1]
+    return new_nodes
 
 
+def split_nodes_link(old_nodes):
+    new_nodes = []
+    for old_node in old_nodes:
+        if old_node.text_type != TextType.TEXT or not old_node.text:
+            new_nodes.append(old_node)
+        else:
+            link_tuples = extract_markdown_links(old_node.text)
+            if len(link_tuples) == 0:
+                new_nodes.append(old_node)
+            else:
+                remainin_text = old_node.text
+                for tuple in link_tuples:
+                    split_res = remainin_text.split(f"[{tuple[0]}]({tuple[1]})", 1)
+                    if len(split_res) != 2:
+                        raise Exception("Invalid link split")
+                    if split_res[0]:
+                        new_nodes.append(TextNode(split_res[0], TextType.TEXT))
+                    new_nodes.append(TextNode(tuple[0], TextType.LINK, tuple[1]))
+                    remainin_text = split_res[1]
     return new_nodes
