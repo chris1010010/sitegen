@@ -6,4 +6,7 @@ def main():
 
     print(node)
 
+    #test = "`code` bla `code`"
+    #print(test.split("`"))
+
 main()
