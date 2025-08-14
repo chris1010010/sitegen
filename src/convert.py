@@ -1,6 +1,6 @@
 import re
 from textnode import TextType, TextNode
-from htmlnode import LeafNode
+from htmlnode import LeafNode, ParentNode
 from block import BlockType
 
 def text_node_to_html_node(text_node):
@@ -133,3 +133,65 @@ def block_to_block_type(text):
         return BlockType.ORDERED_LIST
     
     return BlockType.PARAGRAPH
+
+def markdown_to_html_node(markdown):
+    blocks = markdown_to_blocks(markdown)
+    
+    html_nodes = []
+    for block in blocks:
+        block_type = block_to_block_type(block)
+        html_node = None
+
+        if block_type == BlockType.PARAGRAPH:
+            html_node = ParentNode("p", text_to_children(block.replace("\n", " ")))
+        elif block_type == BlockType.HEADING:
+            tag, remaining_text = get_heading_tag_and_text(block)
+            html_node = ParentNode(tag, text_to_children(remaining_text))
+        elif block_type == BlockType.QUOTE:
+            html_node = ParentNode("blockquote", text_to_children(block.replace("> ", ""))) #TODO
+        elif block_type == BlockType.CODE:
+            code_node = ParentNode("code", [text_node_to_html_node(TextNode(block.replace("```\n", "").replace("```", ""), TextType.TEXT))])
+            html_node = ParentNode("pre", [code_node])
+        elif block_type == BlockType.UNORDERED_LIST:
+            html_node = ParentNode("ul", get_unordered_list_items_blocks(block))
+        elif block_type == BlockType.ORDERED_LIST:
+            html_node = ParentNode("ol", get_ordered_list_items_blocks(block))
+
+        if html_node:
+            html_nodes.append(html_node)
+
+    return ParentNode("div", html_nodes)
+
+def text_to_children(text):
+    html_nodes = []
+    text_nodes = text_to_textnodes(text)
+    for text_node in text_nodes:
+        html_nodes.append(text_node_to_html_node(text_node))
+    return html_nodes
+
+
+def get_heading_tag_and_text(block_text):
+    if block_text.startswith("# "):
+        return "h1", block_text[2:]
+    if block_text.startswith("## "):
+        return "h2", block_text[3:]
+    if block_text.startswith("### "):
+        return "h3", block_text[4:]
+    if block_text.startswith("#### "):
+        return "h4", block_text[5:]
+    if block_text.startswith("##### "):
+        return "h5", block_text[6:]
+    raise Exception("Invalid heading")
+
+def get_unordered_list_items_blocks(text):
+    nodes = []
+    for line in text.split("\n"):
+        nodes.append(ParentNode("li", text_to_children(line[2:])))
+    return nodes
+
+def get_ordered_list_items_blocks(text):
+    nodes = []
+    for line in text.split("\n"):
+        pos = line.index(". ")
+        nodes.append(ParentNode("li", text_to_children(line[pos+2:])))
+    return nodes
