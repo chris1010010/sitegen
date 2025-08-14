@@ -3,7 +3,9 @@ from textnode import TextNode, TextType
 from convert import (text_node_to_html_node, split_nodes_delimiter, 
                     extract_markdown_images, extract_markdown_links, 
                     split_nodes_image, split_nodes_link,
-                    text_to_textnodes)
+                    text_to_textnodes,
+                    markdown_to_blocks, block_to_block_type)
+from block import BlockType
 
 class TestConvert(unittest.TestCase):
     def test_text(self):
@@ -122,6 +124,75 @@ class TestConvert(unittest.TestCase):
             ],
             nodes
         )
+
+    def test_split_all_text_only(self):
+        nodes = text_to_textnodes("This is text")
+        self.assertEqual(len(nodes), 1)
+
+    def test_markdown_to_blocks(self):
+        md = """
+This is **bolded** paragraph
+
+This is another paragraph with _italic_ text and `code` here
+This is the same paragraph on a new line
+
+- This is a list
+- with items
+"""
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(
+            blocks,
+            [
+                "This is **bolded** paragraph",
+                "This is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line",
+                "- This is a list\n- with items",
+            ],
+        )
+
+    def test_markdown_to_one_block(self):
+        md = "Single block"
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(
+            blocks,
+            [
+                "Single block",
+            ],
+        )
+    
+    def test_block_to_block_type(self):
+        block_type = block_to_block_type("### Heading")
+        self.assertEqual(block_type, BlockType.HEADING)
+
+        block_type = block_to_block_type("``` Code ```")
+        self.assertEqual(block_type, BlockType.CODE)
+
+        block_type = block_to_block_type("> l1\n> l2")
+        self.assertEqual(block_type, BlockType.QUOTE)
+
+        block_type = block_to_block_type("- i1\n- i2")
+        self.assertEqual(block_type, BlockType.UNORDERED_LIST)
+
+        block_type = block_to_block_type("1. i1\n2. i2")
+        self.assertEqual(block_type, BlockType.ORDERED_LIST)
+
+        block_type = block_to_block_type("Paragraph text")
+        self.assertEqual(block_type, BlockType.PARAGRAPH)
+
+    def test_block_to_block_type_invalid(self):
+        block_type = block_to_block_type("###Heading")
+        self.assertEqual(block_type, BlockType.PARAGRAPH)
+
+        block_type = block_to_block_type("``` Code")
+        self.assertEqual(block_type, BlockType.PARAGRAPH)
+
+        block_type = block_to_block_type("> l1\n l2")
+        self.assertEqual(block_type, BlockType.PARAGRAPH)
+
+        block_type = block_to_block_type("i1\n- i2")
+        self.assertEqual(block_type, BlockType.PARAGRAPH)
+
+        block_type = block_to_block_type("1. i1\n3. i2")
+        self.assertEqual(block_type, BlockType.PARAGRAPH)
 
 if __name__ == "__main__":
     unittest.main()

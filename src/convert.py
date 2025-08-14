@@ -1,6 +1,7 @@
 import re
 from textnode import TextType, TextNode
 from htmlnode import LeafNode
+from block import BlockType
 
 def text_node_to_html_node(text_node):
     match text_node.text_type:
@@ -101,3 +102,34 @@ def text_to_textnodes(text):
     all_nodes = split_nodes_link(all_nodes)
 
     return all_nodes
+
+def markdown_to_blocks(markdown):
+    split_res = markdown.split("\n\n")
+    trimmed = map(lambda s: s.strip(), split_res)
+    filtered = list(filter(lambda s: s != "", trimmed))
+    return filtered
+
+def block_to_block_type(text):
+    if re.match(r"#{1,5}\s\w", text):
+        return BlockType.HEADING
+    if text.startswith("```") and text.endswith("```"):
+        return BlockType.CODE
+    if text.startswith(">"):
+        for line in text.split("\n"):
+            if not line.startswith(">"):
+                return BlockType.PARAGRAPH
+        return BlockType.QUOTE
+    if text.startswith("- "):
+        for line in text.split("\n"):
+            if not line.startswith("- "):
+                return BlockType.PARAGRAPH
+        return BlockType.UNORDERED_LIST
+    if text.startswith("1. "):
+        num = 1
+        for line in text.split("\n"):
+            if not line.startswith(f"{num}. "):
+                return BlockType.PARAGRAPH
+            num += 1
+        return BlockType.ORDERED_LIST
+    
+    return BlockType.PARAGRAPH
