@@ -15,8 +15,8 @@ class HTMLNode:
         ret = ""
         for key, value in self.props.items():
             if ret:
-                ret += ""
-            ret += f"{key}=\"{value}\""
+                ret += " "
+            ret += f" {key}=\"{value}\""
         return ret
     
     def __repr__(self):
@@ -31,7 +31,8 @@ class LeafNode(HTMLNode):
             raise ValueError("Leaf node requires value")
         if self.tag == None:
             return self.value
-        return f"<{self.tag}>{self.value}</{self.tag}>"
+
+        return f"<{self.tag}{self.props_to_html()}>{self.value}</{self.tag}>"
     
 class ParentNode(HTMLNode):
     def __init__(self, tag, children, props=None):

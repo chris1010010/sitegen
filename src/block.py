@@ -2,7 +2,7 @@
 from enum import Enum
 
 class BlockType(Enum):
-    PARAGRAPH = "paragraph"
+    PARAGRAPH = "p"
     HEADING = "heading"
     CODE = "code"
     QUOTE = "quote"

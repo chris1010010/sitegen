@@ -1,5 +1,6 @@
 import unittest
 from convert import markdown_to_html_node
+from create_html import extract_title
 
 
 class TestToHtml(unittest.TestCase):
@@ -69,9 +70,27 @@ Ordered list:
         html = node.to_html()
         self.assertEqual(
             html,
-            "<div><p>Ordered list:</p><ol><li>List item 1</li><li>List <i>item 2</i></li><li>List item 3</li></ol></div>",
+            "<div><p>Ordered list:</p><ol><li>List item 1</li><li>List <i>item 2</i></li><li>List item 3</li></ol></div>"
         )
+    
+    def test_extrat_title(self):
+        title = extract_title("Header\n# Title\nFooter")
+        self.assertEqual(title, "Title")
 
+        with self.assertRaises(Exception):
+            extract_title("Header\nFooter")
+
+    def test_link(self):
+        md = """
+Link [Link text](https://my.url)
+"""
+
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            '<div><p>Link <a href="https://my.url">Link text</a></p></div>'
+        )
 
 if __name__ == "__main__":
     unittest.main()
