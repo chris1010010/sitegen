@@ -41,7 +41,36 @@ the **same** even with inline stuff
             "<div><pre><code>This is text that _should_ remain\nthe **same** even with inline stuff\n</code></pre></div>",
         )
 
+    def test_ul(self):
+        md = """
+- List item 1
+- List **item 2**
+- List item 3
+"""
 
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><ul><li>List item 1</li><li>List <b>item 2</b></li><li>List item 3</li></ul></div>",
+        )
+
+
+    def test_ol(self):
+        md = """
+Ordered list:
+
+1. List item 1
+2. List _item 2_
+3. List item 3
+"""
+
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><p>Ordered list:</p><ol><li>List item 1</li><li>List <i>item 2</i></li><li>List item 3</li></ol></div>",
+        )
 
 
 if __name__ == "__main__":

@@ -1,19 +1,27 @@
 from textnode import TextNode, TextType
-from convert import text_to_textnodes
+import os
+import shutil
 
 def main():
     print("main:")
-    #node = TextNode("This is some anchor text", TextType.LINK, "https://www.boot.dev")
 
-    #print(node)
+    
+    copy_files("static", "public")
 
-    #test = "`code` bla `code`"
-    #print(test.split("`"))
 
-    #extract_markdown_images("This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)")
+def copy_files(source, target):
+    try:
+        working_dir = os.getcwd()
+        source_path = os.path.join(working_dir, source)
+        target_path = os.path.join(working_dir, target)
 
-    nodes = text_to_textnodes("This is **text** with an _italic_ word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)")
-    for node in nodes:
-        print(str(node))
+        print("Clearing " + target_path)
+        shutil.rmtree(target_path)
+        
+        print("Copying from " + source_path + " to " + target_path)
+        shutil.copytree(source_path, target_path)
+        print("Done")
+    except Exception as e:
+        print(e)
 
 main()
