@@ -8,11 +8,12 @@ def main():
 
     copy_files("static", "public")
 
-    generate_page("content/index.md", "template.html", "public/index.html")
-    generate_page("content/blog/glorfindel/index.md", "template.html", "public/blog/glorfindel/index.html")
-    generate_page("content/blog/tom/index.md", "template.html", "public/blog/tom/index.html")
-    generate_page("content/blog/majesty/index.md", "template.html", "public/blog/majesty/index.html")
-    generate_page("content/contact/index.md", "template.html", "public/contact/index.html")
+    generate_pages_recursive("content", "template.html", "public")
+    #generate_page("content/index.md", "template.html", "public/index.html")
+    #generate_page("content/blog/glorfindel/index.md", "template.html", "public/blog/glorfindel/index.html")
+    #generate_page("content/blog/tom/index.md", "template.html", "public/blog/tom/index.html")
+    #generate_page("content/blog/majesty/index.md", "template.html", "public/blog/majesty/index.html")
+    #generate_page("content/contact/index.md", "template.html", "public/contact/index.html")
 
 
 def copy_files(source, target):
@@ -29,5 +30,16 @@ def copy_files(source, target):
         print("Done")
     except Exception as e:
         print(e)
+
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+
+    files = os.listdir(dir_path_content)
+    for name in files:
+        path = os.path.join(dir_path_content, name)
+        if os.path.isdir(path):
+            generate_pages_recursive(path, template_path, os.path.join(dest_dir_path, name))
+        else:
+            generate_page(path, template_path, os.path.join(dest_dir_path, name).replace(".md", ".html"))
+            
 
 main()
